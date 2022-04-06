@@ -40,13 +40,13 @@ contract TheSpace is HarbergerMarket {
      */
     function setPixel(
         uint256 tokenId,
-        uint256 bid,
+        uint256 bid_,
         uint256 price,
         uint256 color
     ) external {
-        this.bid(tokenId, bid);
-        this.setPrice(tokenId, price);
-        this.setColor(tokenId, color);
+        bid(tokenId, bid_);
+        setPrice(tokenId, price);
+        setColor(tokenId, color);
     }
 
     /**
@@ -70,7 +70,7 @@ contract TheSpace is HarbergerMarket {
      *
      * @dev Emits {Color} event.
      */
-    function setColor(uint256 tokenId, uint256 color) external {
+    function setColor(uint256 tokenId, uint256 color) public {
         if (!_isApprovedOrOwner(msg.sender, tokenId)) revert Unauthorized();
 
         pixelColor[tokenId] = color;
