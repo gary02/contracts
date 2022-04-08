@@ -56,13 +56,22 @@ contract TheSpace is HarbergerMarket {
         external
         view
         returns (
+            uint256 id,
+            address owner,
             uint256 price,
             uint256 color,
             uint256 ubi,
-            address owner
+            uint256 tax
         )
     {
-        return (tokenRecord[tokenId].price, pixelColor[tokenId], ubiAvailable(tokenId), getOwner(tokenId));
+        return (
+            tokenId,
+            getOwner(tokenId),
+            tokenRecord[tokenId].price,
+            pixelColor[tokenId],
+            ubiAvailable(tokenId),
+            getTax(tokenId)
+        );
     }
 
     /**
