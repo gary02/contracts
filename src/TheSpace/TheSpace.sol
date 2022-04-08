@@ -64,13 +64,19 @@ contract TheSpace is HarbergerMarket {
             uint256 tax
         )
     {
+        uint256 tax_;
+        try this.getTax(tokenId) returns (uint256 t) {
+            tax_ = t;
+        } catch {
+            tax_ = 0;
+        }
         return (
             tokenId,
             getOwner(tokenId),
             tokenRecord[tokenId].price,
             pixelColor[tokenId],
             ubiAvailable(tokenId),
-            getTax(tokenId)
+            tax_
         );
     }
 
