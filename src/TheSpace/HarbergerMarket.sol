@@ -162,6 +162,13 @@ contract HarbergerMarket is ERC721, IHarbergerMarket, Multicall, AccessRoles, ER
     }
 
     /**
+     * @dev See {IERC20-totalSupply}. Always return total possible amount of supply, instead of current token in circulation.
+     */
+    function totalSupply() public view override(ERC721Enumerable) returns (uint256) {
+        return _totalSupply;
+    }
+
+    /**
      * Admin only
      */
 
