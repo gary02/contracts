@@ -16,6 +16,12 @@ import "./HarbergerMarket.sol";
  *
  */
 
+struct Pixel {
+    uint256 tokenId;
+    uint256 color;
+    uint256 price;
+}
+
 contract TheSpace is HarbergerMarket {
     /**
      * @notice Color data of each token.
@@ -88,10 +94,75 @@ contract TheSpace is HarbergerMarket {
 
     /**
      * @notice Get color for a pixel.
-     *
-     * @dev Emits {Color} event.
      */
     function getColor(uint256 tokenId) public view returns (uint256) {
         return pixelColor[tokenId];
+    }
+
+    /**
+     * @notice Get owned tokens for a user.
+     *
+     * @dev offset based pagination
+     */
+    function getTokensByOwner(
+        address owner,
+        uint256 limit,
+        uint256 offset
+    ) public view returns (uint256[] memory) {
+        if (limit == 0) {
+            return new uint256[](0);
+        }
+        uint256 total = balanceOf(owner);
+        if (offset >= total) {
+            return new uint256[](0);
+        }
+        uint256 left = total - offset;
+        uint256 size = left > limit ? limit : left;
+
+        uint256[] memory tokens = new uint256[](size);
+
+        for (uint256 i = 0; i < size; i++) {
+            uint256 tokenIndex = i + offset;
+            tokens[i] = tokenOfOwnerByIndex(owner, tokenIndex);
+        }
+
+        return tokens;
+    }
+
+    /**
+     * @notice Get owned pixels for a user using pagination.
+     *
+     * @dev use getTokensByOwner internally
+     * @return total owned pixel total amount for this user
+     * @return size page size
+     * @return page page number
+     * @return pixels pixels in this page
+     */
+    function getPixelPageByOwner(
+        address owner_,
+        uint256 size_,
+        uint256 page_
+    )
+        external
+        view
+        returns (
+            uint256 total,
+            uint256 size,
+            uint256 page,
+            Pixel[] memory pixels
+        )
+    {
+        if (page == 0) {
+            return (balanceOf(owner_), size_, page_, new Pixel[](0));
+        }
+
+        uint256[] memory _tokens = getTokensByOwner(owner_, size_, size_ * (page_ - 1));
+        Pixel[] memory _pixels = new Pixel[](_tokens.length);
+        for (uint256 i = 0; i < _tokens.length; i++) {
+            uint256 _tokenId = _tokens[i];
+            _pixels[i] = Pixel({tokenId: _tokenId, color: pixelColor[_tokenId], price: tokenRecord[_tokenId].price});
+        }
+
+        return (balanceOf(owner_), size_, page_, _pixels);
     }
 }
