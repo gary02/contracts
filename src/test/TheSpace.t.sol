@@ -86,7 +86,7 @@ contract TheSpaceTest is DSTest {
 
         assertEq(price, 0);
         assertEq(color, 0);
-        assertEq(ubi, 0);
+        assertEq(ubi, 950000000000);
         assertEq(owner, PIXEL_OWNER);
     }
 
