@@ -26,7 +26,6 @@ contract TheSpace is HarbergerMarket {
     /**
      * @notice Color data of each token.
      *
-     * TODO: Combine with TokenRecord to optimize storage?
      */
     mapping(uint256 => uint256) public pixelColor;
 
@@ -37,9 +36,10 @@ contract TheSpace is HarbergerMarket {
 
     constructor(
         address currencyAddress_,
-        address admin_,
-        address treasury_
-    ) HarbergerMarket("Planck", "PLK", currencyAddress_, admin_, treasury_) {}
+        address aclManager_,
+        address marketAdmin_,
+        address treasuryAdmin_
+    ) HarbergerMarket("Planck", "PLK", currencyAddress_, aclManager_, marketAdmin_, treasuryAdmin_) {}
 
     /**
      * @notice Bid pixel, then set price and color.
@@ -94,6 +94,7 @@ contract TheSpace is HarbergerMarket {
 
     /**
      * @notice Get color for a pixel.
+     *
      */
     function getColor(uint256 tokenId) public view returns (uint256) {
         return pixelColor[tokenId];
