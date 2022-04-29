@@ -5,43 +5,52 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract Snapper is Ownable {
     /**
+     * @dev `lastSnapshotBlock_` must be equal to `_latestSnapshotBlock` in `takeSnapshot` method
+     */
+    error InvalidLastSnapshotBlock(uint256 last, uint256 latest);
+
+    /**
+     * @dev `snapshotBlock_` must be greater than `_latestSnapshotBlock` in `takeSnapshot` method
+     */
+    error InvalidSnapshotBlock(uint256 target, uint256 latest);
+
+    /**
      * @notice snapshot info
-     * @param block the block number the snapshot of.
-     * @param cid IPFS CID of this snapshot file.
+     * @param block the block number snapshotted for The Space.
+     * @param cid IPFS CID of the snapshot file.
      */
     event Snapshot(uint256 indexed block, string cid);
 
     /**
      * @notice delta info
-     * @param block this delta end at this block, inclusive
-     * @param cid IPFS CID for this delta file.
+     * @param block delta end at this block number, inclusive
+     * @param cid IPFS CID of the delta file.
      */
     event Delta(uint256 indexed block, string cid);
 
     /**
-     * @dev last snapshot toBlock num.
+     * @dev store latest snapshot info.
      */
     uint256 private _latestSnapshotBlock;
-
-    /**
-     * @dev help clients getting latest data.
-     */
     string private _latestSnapshotCid;
 
     /**
-     * @dev create Snapper contract, init safeConfirmations and emit initial snapshot.
+     * @notice create Snapper contract with initial snapshot.
+     * @dev Emits {Snapshot} event.
+     * @param theSpaceCreationBlock_ the Contract Creation block number of The Space contract.
+     * @param snapshotCid_ the initial pixels picture IPFS CID of The Space.
      */
-    constructor(uint256 deploymentBlock_, string memory snapshotCid_) {
-        _latestSnapshotBlock = deploymentBlock_;
+    constructor(uint256 theSpaceCreationBlock_, string memory snapshotCid_) {
+        _latestSnapshotBlock = theSpaceCreationBlock_;
         _latestSnapshotCid = snapshotCid_;
 
         emit Snapshot(_latestSnapshotBlock, snapshotCid_);
     }
 
     /**
-     * @dev take snapshot. use lastSnapshotBlock_ to validate precondition.
-     * @param lastSnapshotBlock_ block number last snapshot of.
-     * @param snapshotBlock_ block number this snapshot of,
+     * @dev Emits {Snapshot} and {Delta} events.
+     * @param lastSnapshotBlock_ last block number snapshotted for The Space. use to validate precondition.
+     * @param snapshotBlock_ the block number snapshotted for The Space this time.
      */
     function takeSnapshot(
         uint256 lastSnapshotBlock_,
@@ -49,14 +58,10 @@ contract Snapper is Ownable {
         string calldata snapshotCid_,
         string calldata deltaCid_
     ) external onlyOwner {
-        require(
-            lastSnapshotBlock_ == _latestSnapshotBlock,
-            "`lastSnapshotBlock_` must be equal to `latestSnapshotBlock` returned by `latestSnapshotInfo`"
-        );
-        require(
-            snapshotBlock_ > lastSnapshotBlock_,
-            "`snapshotBlock_` must be greater than `latestSnapshotBlock` returned by `latestSnapshotInfo`"
-        );
+        if (lastSnapshotBlock_ != _latestSnapshotBlock)
+            revert InvalidLastSnapshotBlock(lastSnapshotBlock_, _latestSnapshotBlock);
+
+        if (snapshotBlock_ <= _latestSnapshotBlock) revert InvalidSnapshotBlock(snapshotBlock_, _latestSnapshotBlock);
 
         _latestSnapshotBlock = snapshotBlock_;
         _latestSnapshotCid = snapshotCid_;
@@ -66,7 +71,7 @@ contract Snapper is Ownable {
     }
 
     /**
-     * @dev used by clients get the lastest snapshot info.
+     * @dev get the lastest snapshot info.
      */
     function latestSnapshotInfo() external view returns (uint256 latestSnapshotBlock, string memory latestSnapshotCid) {
         return (_latestSnapshotBlock, _latestSnapshotCid);
